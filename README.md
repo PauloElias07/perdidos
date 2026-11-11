@@ -40,13 +40,13 @@ O app substitui murais físicos ou avisos dispersos por uma plataforma integrada
 
 3. **Cadastro com Câmera e Mapa Interativo**:
    - Abertura da câmera nativa do dispositivo com `ActivityResultContracts.TakePicturePreview`.
-   - **Pré-visualização da foto em tempo real** para conferência antes de publicar.
+   - **Pré-visualização da foto com conferência visual** e **Modal de Imagem Completa** em tela cheia (ao tocar na foto ou no atalho "Ver completa"), com opção de "Tirar outra".
    - Seleção de categorias genéricas e subcategorias específicas (ex: Carteirinha, Cabo HDMI, Garrafa).
    - **Planta interativa da Fatec Diadema**: seleção por toque do andar (Térreo, 1º ou 2º) e marcação da sala ou do ponto exato no corredor com coordenadas normalizadas.
    - Checkbox informando se o item foi entregue na Coordenação.
 
 4. **Detalhes do Item e Resgate**:
-   - Imagem ampliada e informações completas do objeto.
+   - Imagem do objeto com **Modal de Visualização Completa** em tela cheia (toque sobre a imagem para abrir a foto inteira sem cortes com `ContentScale.Fit`).
    - Mapa em modo somente leitura destacando onde o item foi achado.
    - Instruções claras de retirada (Sala da Coordenação ou local original).
    - Ação de confirmação de recuperação ("Já recuperei"), que remove o item da nuvem e do banco local, atualizando a contagem para todos os usuários.

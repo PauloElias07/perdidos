@@ -11,6 +11,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -482,6 +484,7 @@ fun TelaCadastrarItem(
     var fotoCapturadaBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var urlFotoCloudinary by remember { mutableStateOf("") }
     var enviandoFoto by remember { mutableStateOf(false) }
+    var mostrarModalFoto by remember { mutableStateOf(false) }
 
     // Abre a câmera do celular e recebe a foto tirada
     val cameraLauncher = rememberLauncherForActivityResult(
@@ -561,7 +564,13 @@ fun TelaCadastrarItem(
                                 color = if (fotoCapturadaBitmap != null) Color(0xFF16A34A) else Color(0xFFCBD5E1),
                                 shape = RoundedCornerShape(12.dp)
                             )
-                            .clickable { permissaoCameraLauncher.launch(Manifest.permission.CAMERA) },
+                            .clickable {
+                                if (fotoCapturadaBitmap != null) {
+                                    mostrarModalFoto = true
+                                } else {
+                                    permissaoCameraLauncher.launch(Manifest.permission.CAMERA)
+                                }
+                            },
                         contentAlignment = Alignment.Center
                     ) {
                         if (fotoCapturadaBitmap != null) {
@@ -572,12 +581,41 @@ fun TelaCadastrarItem(
                                 contentScale = ContentScale.Crop
                             )
 
+                            // Botão discreto no topo direito "Ver completa"
+                            Surface(
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(8.dp)
+                                    .clickable { mostrarModalFoto = true },
+                                shape = RoundedCornerShape(8.dp),
+                                color = Color.Black.copy(alpha = 0.65f)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.ZoomIn,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                    Text(
+                                        text = "Ver completa",
+                                        color = Color.White,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                            }
+
                             // Barra sobreposta no rodapé da imagem
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .align(Alignment.BottomCenter)
-                                    .background(Color.Black.copy(alpha = 0.65f))
+                                    .background(Color.Black.copy(alpha = 0.7f))
                                     .padding(vertical = 8.dp, horizontal = 12.dp)
                             ) {
                                 Row(
@@ -609,12 +647,27 @@ fun TelaCadastrarItem(
                                             fontWeight = FontWeight.Bold
                                         )
                                     }
-                                    Text(
-                                        text = "Toque para alterar",
-                                        color = Color.White,
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Medium
-                                    )
+                                    Row(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .clickable { permissaoCameraLauncher.launch(Manifest.permission.CAMERA) }
+                                            .padding(horizontal = 6.dp, vertical = 2.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.CameraAlt,
+                                            contentDescription = null,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                        Text(
+                                            text = "Tirar outra",
+                                            color = Color.White,
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                    }
                                 }
                             }
                         } else {
@@ -809,6 +862,14 @@ fun TelaCadastrarItem(
             }
         }
     }
+
+    if (mostrarModalFoto && fotoCapturadaBitmap != null) {
+        ModalVisualizadorImagem(
+            bitmap = fotoCapturadaBitmap,
+            titulo = if (tituloItem.isNotBlank()) tituloItem else "Foto do Item Cadastrado",
+            onFechar = { mostrarModalFoto = false }
+        )
+    }
 }
 
 // =========================================================================
@@ -822,6 +883,7 @@ fun TelaDetalhesItem(
     onAbrirConfiguracoes: () -> Unit
 ) {
     var mostrarDialogConfirmacao by remember { mutableStateOf(false) }
+    var mostrarModalFoto by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -853,7 +915,8 @@ fun TelaDetalhesItem(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(200.dp)
-                            .background(Color(0xFFE2E8F0)),
+                            .background(Color(0xFFE2E8F0))
+                            .clickable { mostrarModalFoto = true },
                         contentAlignment = Alignment.Center
                     ) {
                         ImagemCloudinaryOuEmoji(
@@ -862,6 +925,34 @@ fun TelaDetalhesItem(
                             subcategoria = item.subcategoria,
                             tamanhoEmoji = 64.sp
                         )
+
+                        // Distintivo "Toque para ampliar"
+                        Surface(
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(8.dp),
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color.Black.copy(alpha = 0.65f)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ZoomIn,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Text(
+                                    text = "Toque para ampliar",
+                                    color = Color.White,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
                     }
 
                     Column(
@@ -991,6 +1082,16 @@ fun TelaDetalhesItem(
             }
         )
     }
+
+    if (mostrarModalFoto) {
+        ModalVisualizadorImagem(
+            fotoUrl = item.fotoUrl,
+            categoria = item.categoria,
+            subcategoria = item.subcategoria,
+            titulo = item.titulo,
+            onFechar = { mostrarModalFoto = false }
+        )
+    }
 }
 
 // =========================================================================
@@ -1063,6 +1164,100 @@ fun ModalConfiguracaoLembrete(
             }
         }
     )
+}
+
+// =========================================================================
+// MODAL DE VISUALIZAÇÃO COMPLETA DA IMAGEM
+// =========================================================================
+@Composable
+fun ModalVisualizadorImagem(
+    bitmap: Bitmap? = null,
+    fotoUrl: String = "",
+    categoria: String = "",
+    subcategoria: String = "",
+    titulo: String = "Foto do Item",
+    onFechar: () -> Unit
+) {
+    Dialog(
+        onDismissRequest = onFechar,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true
+        )
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.94f))
+                .clickable { onFechar() }
+        ) {
+            // Imagem centralizada ocupando a tela com ContentScale.Fit
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp, vertical = 72.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                if (bitmap != null) {
+                    Image(
+                        bitmap = bitmap.asImageBitmap(),
+                        contentDescription = "Foto ampliada",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Fit
+                    )
+                } else if (fotoUrl.isNotBlank()) {
+                    ImagemCloudinaryOuEmoji(
+                        fotoUrl = fotoUrl,
+                        categoria = categoria,
+                        subcategoria = subcategoria,
+                        tamanhoEmoji = 96.sp,
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            }
+
+            // Barra superior com título e botão Fechar
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopCenter)
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+                    Text(
+                        text = titulo,
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1
+                    )
+                    Text(
+                        text = "Toque na tela ou no X para fechar",
+                        color = Color(0xFFCBD5E1),
+                        fontSize = 12.sp
+                    )
+                }
+
+                IconButton(
+                    onClick = onFechar,
+                    modifier = Modifier
+                        .size(36.dp)
+                        .background(Color.White.copy(alpha = 0.2f), CircleShape)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Fechar visualização",
+                        tint = Color.White
+                    )
+                }
+            }
+        }
+    }
 }
 
 fun emojiPorCategoria(categoria: String, subcategoria: String = ""): String = when (subcategoria) {

@@ -91,7 +91,9 @@ fun ImagemCloudinaryOuEmoji(
     fotoUrl: String,
     categoria: String,
     subcategoria: String = "",
-    tamanhoEmoji: TextUnit
+    tamanhoEmoji: TextUnit,
+    modifier: Modifier = Modifier.fillMaxSize(),
+    contentScale: ContentScale = ContentScale.Crop
 ) {
     var bitmapRemoto by remember(fotoUrl) { mutableStateOf<Bitmap?>(null) }
 
@@ -121,8 +123,8 @@ fun ImagemCloudinaryOuEmoji(
         Image(
             bitmap = bitmapRemoto!!.asImageBitmap(),
             contentDescription = "Foto do item",
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
+            modifier = modifier,
+            contentScale = contentScale
         )
     } else {
         Text(
