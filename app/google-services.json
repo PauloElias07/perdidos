@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "482722716180",
+    "project_id": "perdidos-6e568",
+    "storage_bucket": "perdidos-6e568.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:482722716180:android:6f6849cd5f6b90e7452501",
+        "android_client_info": {
+          "package_name": "com.example.perdidos"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCBLF0IZ-JmBcw5w5pMQdOGnRuJem28rcY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
