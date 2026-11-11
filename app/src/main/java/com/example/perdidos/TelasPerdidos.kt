@@ -994,12 +994,13 @@ fun TelaDetalhesItem(
 }
 
 // =========================================================================
-// MODAL DE CONFIGURAÇÃO DE LEMBRETE (Dia, Semana ou Mês)
+// MODAL DE CONFIGURAÇÃO DE LEMBRETE (DataStore + WorkManager)
 // =========================================================================
 @Composable
 fun ModalConfiguracaoLembrete(
     periodoAtual: String,
     onSelecionarPeriodo: (String) -> Unit,
+    onTestarNotificacao: () -> Unit = {},
     onFechar: () -> Unit
 ) {
     val opcoes = listOf("Dia", "Semana", "Mês")
@@ -1010,9 +1011,9 @@ fun ModalConfiguracaoLembrete(
             Text("Lembrete de Itens Perdidos", fontWeight = FontWeight.Bold)
         },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(
-                    text = "Com qual frequência devemos perguntar se você perdeu algo na Fatec?",
+                    text = "Frequência dos lembretes periódicos (salvo no DataStore):",
                     fontSize = 13.sp,
                     color = Color(0xFF475569)
                 )
@@ -1022,7 +1023,7 @@ fun ModalConfiguracaoLembrete(
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(8.dp))
                             .clickable { onSelecionarPeriodo(opcao) }
-                            .padding(vertical = 6.dp),
+                            .padding(vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(
@@ -1035,6 +1036,22 @@ fun ModalConfiguracaoLembrete(
                         )
                     }
                 }
+
+                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+                OutlinedButton(
+                    onClick = onTestarNotificacao,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.NotificationsActive,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Testar Notificação Agora", fontSize = 13.sp)
+                }
             }
         },
         confirmButton = {
@@ -1042,7 +1059,7 @@ fun ModalConfiguracaoLembrete(
                 onClick = onFechar,
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E40AF))
             ) {
-                Text("Salvar")
+                Text("Concluir")
             }
         }
     )

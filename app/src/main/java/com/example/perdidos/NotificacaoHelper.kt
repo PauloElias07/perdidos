@@ -17,6 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.TextUnit
+import android.app.PendingIntent
+import android.content.Intent
 import android.util.Base64
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
@@ -45,7 +47,9 @@ object NotificacaoPerdidosHelper {
                 CANAL_ID,
                 "Lembretes de Achados e Perdidos",
                 NotificationManager.IMPORTANCE_DEFAULT
-            )
+            ).apply {
+                description = "Lembrete periódico para verificar itens perdidos na Fatec"
+            }
             manager.createNotificationChannel(canal)
         }
 
@@ -55,11 +59,22 @@ object NotificacaoPerdidosHelper {
             else -> "na última semana"
         }
 
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            0,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
         val notificacao = NotificationCompat.Builder(context, CANAL_ID)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setContentTitle("PERDIDOS • Fatec Diadema")
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentTitle("e-PERDIDOS • Fatec Diadema")
             .setContentText("Você perdeu algo $textoPeriodo? Há $qtdItens itens esperando seus donos!")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setContentIntent(pendingIntent)
             .setAutoCancel(true)
             .build()
 

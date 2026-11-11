@@ -1,14 +1,18 @@
 package com.example.perdidos
 
-import android.content.Context
+import android.Manifest
+import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.launch
 
 enum class TelaAtual {
     HOME,
@@ -22,6 +26,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val bancoSqlite = BancoSqlitePerdidos(this)
 
+        // Inicializa o agendamento de lembrete com WorkManager
+        NotificacaoAgendador.agendarLembrete(this, "Semana")
+
         setContent {
             MaterialTheme {
                 Perdidos(bancoSqlite = bancoSqlite)
@@ -33,7 +40,23 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun Perdidos(bancoSqlite: BancoSqlitePerdidos) {
     val context = LocalContext.current
-    val prefs = remember { context.getSharedPreferences("config_perdidos", Context.MODE_PRIVATE) }
+    val coroutineScope = rememberCoroutineScope()
+
+    // Permissão de notificações no Android 13+ (API 33+)
+    val permissaoNotificacaoLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { }
+
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissaoNotificacaoLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
+    // Preferência reativa do período de lembrete lida diretamente do Jetpack DataStore!
+    val periodoLembrete by PreferenciasPerdidosRepository
+        .obterPeriodoLembrete(context)
+        .collectAsState(initial = "Semana")
 
     // Lista de itens carregada direto do SQLite!
     var itensPerdidos by remember { mutableStateOf(bancoSqlite.listarItens()) }
@@ -46,11 +69,6 @@ fun Perdidos(bancoSqlite: BancoSqlitePerdidos) {
     // Controle de navegação entre as 4 telas do Figma
     var telaAtual by remember { mutableStateOf(TelaAtual.HOME) }
     var itemSelecionado by remember { mutableStateOf<ItemPerdido?>(null) }
-
-    // Configuração do lembrete (Dia, Semana ou Mês)
-    var periodoLembrete by remember {
-        mutableStateOf(prefs.getString("periodo_lembrete", "Semana") ?: "Semana")
-    }
     var mostrarModalConfig by remember { mutableStateOf(false) }
 
     // Permite usar o botão Voltar do próprio celular Android
@@ -133,8 +151,19 @@ fun Perdidos(bancoSqlite: BancoSqlitePerdidos) {
         ModalConfiguracaoLembrete(
             periodoAtual = periodoLembrete,
             onSelecionarPeriodo = { novoPeriodo ->
-                periodoLembrete = novoPeriodo
-                prefs.edit().putString("periodo_lembrete", novoPeriodo).apply()
+                coroutineScope.launch {
+                    PreferenciasPerdidosRepository.salvarPeriodoLembrete(context, novoPeriodo)
+                    NotificacaoAgendador.agendarLembrete(context, novoPeriodo)
+                    Toast.makeText(context, "Lembrete atualizado no DataStore e agendado!", Toast.LENGTH_SHORT).show()
+                }
+            },
+            onTestarNotificacao = {
+                NotificacaoAgendador.dispararImediatamente(
+                    context = context,
+                    periodo = periodoLembrete,
+                    qtdItens = itensPerdidos.size
+                )
+                Toast.makeText(context, "Notificação emitida!", Toast.LENGTH_SHORT).show()
             },
             onFechar = { mostrarModalConfig = false }
         )
