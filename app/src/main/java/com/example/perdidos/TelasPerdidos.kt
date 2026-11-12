@@ -1095,75 +1095,176 @@ fun TelaDetalhesItem(
 }
 
 // =========================================================================
-// MODAL DE CONFIGURAÇÃO DE LEMBRETE (DataStore + WorkManager)
+// TELA DE CONFIGURAÇÃO DE LEMBRETE (DataStore + WorkManager)
 // =========================================================================
 @Composable
-fun ModalConfiguracaoLembrete(
+fun TelaConfiguracaoLembrete(
     periodoAtual: String,
     onSelecionarPeriodo: (String) -> Unit,
     onTestarNotificacao: () -> Unit = {},
-    onFechar: () -> Unit
+    onVoltar: () -> Unit
 ) {
     val opcoes = listOf("Dia", "Semana", "Mês")
 
-    AlertDialog(
-        onDismissRequest = onFechar,
-        title = {
-            Text("Lembrete de Itens Perdidos", fontWeight = FontWeight.Bold)
-        },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(
-                    text = "Frequência dos lembretes periódicos (salvo no DataStore):",
-                    fontSize = 13.sp,
-                    color = Color(0xFF475569)
-                )
-                opcoes.forEach { opcao ->
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF1F5F9))
+    ) {
+        HeaderPerdidos(
+            mostrarBotaoVoltar = true,
+            onVoltarClick = onVoltar,
+            onConfigClick = { }
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Card Principal de Configuração de Frequência
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
                     Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Surface(
+                            color = Color(0xFFEFF6FF),
+                            shape = CircleShape,
+                            modifier = Modifier.size(44.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Default.NotificationsActive,
+                                    contentDescription = null,
+                                    tint = Color(0xFF1E40AF)
+                                )
+                            }
+                        }
+                        Column {
+                            Text(
+                                text = "Lembrete de Itens Perdidos",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp,
+                                color = Color(0xFF1E293B)
+                            )
+                            Text(
+                                text = "Frequência dos lembretes periódicos",
+                                fontSize = 13.sp,
+                                color = Color(0xFF64748B)
+                            )
+                        }
+                    }
+
+                    HorizontalDivider(color = Color(0xFFE2E8F0))
+
+                    Text(
+                        text = "Selecione o intervalo para receber notificações sobre itens aguardando resgate:",
+                        fontSize = 14.sp,
+                        color = Color(0xFF475569)
+                    )
+
+                    opcoes.forEach { opcao ->
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable { onSelecionarPeriodo(opcao) },
+                            color = if (periodoAtual == opcao) Color(0xFFEFF6FF) else Color(0xFFF8FAFC),
+                            border = if (periodoAtual == opcao) {
+                                androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFF1E40AF))
+                            } else {
+                                androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0))
+                            },
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                RadioButton(
+                                    selected = periodoAtual == opcao,
+                                    onClick = { onSelecionarPeriodo(opcao) },
+                                    colors = RadioButtonDefaults.colors(
+                                        selectedColor = Color(0xFF1E40AF)
+                                    )
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "A cada 1 $opcao",
+                                    fontWeight = if (periodoAtual == opcao) FontWeight.Bold else FontWeight.Medium,
+                                    fontSize = 15.sp,
+                                    color = if (periodoAtual == opcao) Color(0xFF1E40AF) else Color(0xFF334155)
+                                )
+                            }
+                        }
+                    }
+
+                    HorizontalDivider(color = Color(0xFFE2E8F0))
+
+                    OutlinedButton(
+                        onClick = onTestarNotificacao,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable { onSelecionarPeriodo(opcao) }
-                            .padding(vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RadioButton(
-                            selected = periodoAtual == opcao,
-                            onClick = { onSelecionarPeriodo(opcao) }
+                            .height(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF1E40AF)),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = Color(0xFF1E40AF)
                         )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.NotificationsActive,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "A cada 1 $opcao",
-                            fontWeight = FontWeight.Medium
+                            text = "Testar Notificação Agora",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+
+                    Button(
+                        onClick = onVoltar,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF1E40AF)
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Concluir e Salvar",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
-
-                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-
-                OutlinedButton(
-                    onClick = onTestarNotificacao,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.NotificationsActive,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Testar Notificação Agora", fontSize = 13.sp)
-                }
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = onFechar,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E40AF))
-            ) {
-                Text("Concluir")
             }
         }
-    )
+    }
 }
 
 // =========================================================================

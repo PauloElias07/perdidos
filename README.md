@@ -16,7 +16,7 @@ O app substitui murais físicos ou avisos dispersos por uma plataforma integrada
 
 | Requisito | Tecnologia / Implementação | Descrição |
 | :--- | :--- | :--- |
-| **Navegação entre Telas** | **Jetpack Compose State + BackHandler** | Navegação fluida entre 4 fluxos principais (`HOME`, `CATALOGO`, `CADASTRO` e `DETALHES`), com suporte ao botão físico/gestual de voltar do Android via `BackHandler`. |
+| **Navegação entre Telas** | **Navigation Compose (`NavHost` / `NavController`)** | Navegação declarativa fluida entre 5 telas principais (`HOME`, `CATALOGO`, `CADASTRO`, `DETALHES` e `CONFIGURACOES`), com suporte nativo ao botão físico/gestual de voltar do Android via pilha de navegação (`popBackStack`). |
 | **DataStore (Preferências)** | **Jetpack DataStore Preferences** | Armazenamento reativo e assíncrono das preferências do usuário (`periodo_lembrete`: Dia, Semana ou Mês), exposto por Kotlin `Flow` e gerenciado em `PreferenciasPerdidosRepository`. |
 | **SQLite (Persistência Local)** | **SQLiteOpenHelper (`perdidos.db`)** | Banco relacional local completo com tabela `itens_perdidos`, operações de CRUD (`listarItens`, `inserirItem`, `removerItemRecuperado`, `atualizarTudoDaNuvem`) e carga inicial de demonstração. |
 | **API REST (Serviço Externo)** | **HTTP Client + Cloudinary REST API** | Consumo direto da API REST pública do Cloudinary (`POST /image/upload`) para upload de fotos de itens em Base64 e parsing de resposta JSON para recuperação da `secure_url`. |
@@ -51,7 +51,13 @@ O app substitui murais físicos ou avisos dispersos por uma plataforma integrada
    - Instruções claras de retirada (Sala da Coordenação ou local original).
    - Ação de confirmação de recuperação ("Já recuperei"), que remove o item da nuvem e do banco local, atualizando a contagem para todos os usuários.
 
-5. **Sincronização em Nuvem (Firebase Cloud Firestore)**:
+5. **Página de Configuração de Lembretes**:
+   - Tela completa e dedicada de configurações acessível através do ícone de engrenagem nas barras superiores.
+   - Seleção interativa da frequência dos lembretes ("A cada 1 Dia", "A cada 1 Semana", "A cada 1 Mês") salva no Jetpack DataStore.
+   - Botão para disparo de teste imediato de notificação com WorkManager.
+   - Card informativo explicando o funcionamento da persistência reativa e do agendamento em segundo plano.
+
+6. **Sincronização em Nuvem (Firebase Cloud Firestore)**:
    - Sincronização automática em tempo real entre diferentes dispositivos via `addSnapshotListener`, garantindo que os dados do SQLite local se mantenham sempre atualizados com a nuvem.
 
 ---
@@ -61,9 +67,9 @@ O app substitui murais físicos ou avisos dispersos por uma plataforma integrada
 ```text
 app/src/main/java/com/example/perdidos/
 │
-├── MainActivity.kt               # Ponto de entrada, navegação e orquestração de estados Compose
+├── MainActivity.kt               # Ponto de entrada, rotas e NavHost do Navigation Compose
 ├── DadosFatec.kt                 # Modelos de dados (ItemPerdido, PavimentoFatec), mapa das salas e categorias
-├── TelasPerdidos.kt              # Telas da UI (Home, Catálogo, Cadastro, Detalhes e Modal de Configuração)
+├── TelasPerdidos.kt              # Telas da UI (Home, Catálogo, Cadastro, Detalhes e Configuração de Lembrete)
 ├── ComponenteMapaFatec.kt        # Componente da planta baixa interativa da Fatec Diadema
 │
 ├── BancoSqlitePerdidos.kt        # Persistência local em SQLite (SQLiteOpenHelper)
@@ -81,6 +87,7 @@ app/src/main/java/com/example/perdidos/
 
 - **Linguagem**: Kotlin 2.2+
 - **Interface Declarativa**: Jetpack Compose com Material Design 3
+- **Navegação entre Telas**: Jetpack Navigation Compose (`androidx.navigation:navigation-compose`)
 - **Persistência Local**: Android SQLite (`android.database.sqlite`)
 - **Preferências**: AndroidX DataStore Preferences (`androidx.datastore:datastore-preferences`)
 - **Agendamento em Background**: AndroidX WorkManager (`androidx.work:work-runtime-ktx`)
